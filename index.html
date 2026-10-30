@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#00f0ff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Neon Kinetic Clash | 2-Player Mobile Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="grid-overlay"></div>
+      <div class="scanlines"></div>
+
+      <!-- Main Game Canvas Container -->
+      <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+      </div>
+
+      <!-- In-Game HUD -->
+      <div id="game-hud" class="hidden">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="status-pill">
+            <div id="ping-dot" class="ping-dot"></div>
+            <span id="status-text">OFFLINE</span>
+          </div>
+          <span id="hud-input-badge" class="status-pill" style="color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);">⌨️ KEYS</span>
+          <span id="hud-speed-pill" class="status-pill" style="color: var(--yellow); border-color: rgba(255, 230, 0, 0.4); font-weight: 800;">⚡ 320 KM/H</span>
+        </div>
+
+        <div class="score-container">
+          <span id="score-p1" class="score-num score-p1">0</span>
+          <span class="score-divider">:</span>
+          <span id="score-p2" class="score-num score-p2">0</span>
+        </div>
+
+        <div class="hud-controls">
+          <button id="btn-input-toggle" class="icon-btn" title="Switch Input Mode">⌨️</button>
+          <button id="btn-sound" class="icon-btn" title="Toggle Sound">🔊</button>
+          <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">⛶</button>
+          <button id="btn-quit" class="icon-btn" title="Quit to Menu">✕</button>
+        </div>
+      </div>
+
+      <!-- Key Visualizer for Keyboard Mode -->
+      <div id="key-visualizer" class="hidden">
+        <div class="key-box" id="kb-w">W</div>
+        <div class="key-box" id="kb-a">A</div>
+        <div class="key-box" id="kb-s">S</div>
+        <div class="key-box" id="kb-d">D</div>
+        <div class="key-box" id="kb-space" style="width: 52px; font-size: 0.65rem;">SPACE</div>
+      </div>
+
+      <!-- Floating Touch Spike Action Button -->
+      <button id="btn-touch-spike" class="spike-action-btn hidden" title="Spike / Smash">
+        <span>⚡</span> SPIKE
+      </button>
+
+      <!-- Active Power-up indicators -->
+      <div id="powerup-hud"></div>
+      <div id="blaster-hint" class="hidden">TAP SCREEN TO FIRE LASERS!</div>
+
+      <!-- Countdown Overlay -->
+      <div id="countdown-overlay" class="hidden">
+        <span id="countdown-text" class="countdown-num">3</span>
+      </div>
+
+      <!-- SCREEN 1: Main Menu (Elite Cyberpunk Command Center) -->
+      <div id="screen-menu" class="screen-panel">
+        <!-- Top Utility & Status Header -->
+        <div class="menu-top-bar">
+          <div class="top-bar-left">
+            <span class="status-indicator-pill"><span class="pulse-led online"></span> WEBRTC CORE ONLINE</span>
+            <span class="status-indicator-pill cyan">⚡ 60 FPS ARCADE</span>
+          </div>
+          <div class="top-bar-right">
+            <button id="btn-menu-sound" class="btn-top-action" title="Toggle Sound">
+              <span class="sound-eq-bars">
+                <span class="eq-bar bar-1"></span>
+                <span class="eq-bar bar-2"></span>
+                <span class="eq-bar bar-3"></span>
+              </span>
+              <span id="sound-btn-label">AUDIO: ON</span>
+            </button>
+            <button id="btn-menu-fs" class="btn-top-action" title="Toggle Fullscreen">
+              <span>⛶</span> FULLSCREEN
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Brand Header & Cyber Crest -->
+        <div class="hero-brand">
+          <div class="brand-crest">
+            <div class="crest-halo"></div>
+            <span class="crest-glitch">⚡</span>
+            <div class="crest-lines"></div>
+          </div>
+          <h1 class="game-title">Kinetic Clash</h1>
+          <p class="hero-tagline">AAA HIGH-VOLTAGE AIR-HOCKEY • ARCADE 60FPS VOLLEY BRAWLER</p>
+          <div class="brand-badges">
+            <span class="brand-badge cyan">⚡ VOLLEY SCALING</span>
+            <span class="brand-badge yellow">🔥 10 COMBAT POWER-UPS</span>
+            <span class="brand-badge magenta">🌐 P2P WEBRTC VERSUS</span>
+          </div>
+        </div>
+
+        <!-- Main 2-Column Command Center Deck -->
+        <div class="title-deck-grid">
+          <!-- Column 1: Battle Protocols (Game Modes) -->
+          <div class="deck-column">
+            <div class="deck-header">
+              <span class="deck-icon">🕹️</span>
+              <span class="deck-title">BATTLE PROTOCOLS</span>
+              <span class="deck-sub-tag">SELECT MODE</span>
+            </div>
+
+            <!-- Mode 1: Solo Bot Protocol (PRIMARY CENTERPIECE) -->
+            <div class="mode-card featured solo-focus-card">
+              <div class="mode-card-header">
+                <div class="mode-tag-row">
+                  <span class="mode-pill pill-yellow">⚡ QUICK CLASH</span>
+                  <span class="mode-meta">NEURAL BOT AI</span>
+                </div>
+                <div class="card-status-badge">PRIMARY</div>
+              </div>
+              <div class="mode-desc">Face tactical neural bot with predictive deflection angles and lethal bankshots.</div>
+
+              <!-- Difficulty Selector with Tactical Intel Readout -->
+              <div class="diff-control-wrap">
+                <div class="diff-label-row">
+                  <span class="diff-section-label">AI PROTOCOL LEVEL:</span>
+                  <span id="diff-meta-readout" class="diff-meta-readout">TACTICAL BANKSHOTS • 650 KM/H</span>
+                </div>
+                <div class="diff-selector-row">
+                  <button class="diff-chip btn-diff-select" data-diff="RECRUIT">
+                    <span>🟢</span> RECRUIT
+                  </button>
+                  <button class="diff-chip btn-diff-select active" data-diff="VETERAN">
+                    <span>🟡</span> VETERAN
+                  </button>
+                  <button class="diff-chip btn-diff-select" data-diff="APEX">
+                    <span>🔴</span> APEX
+                  </button>
+                </div>
+              </div>
+
+              <button id="btn-menu-ai" class="btn btn-hero btn-full">
+                <span>⚡</span> LAUNCH SOLO PROTOCOL <span class="btn-kbd-hint">[SPACE]</span>
+              </button>
+            </div>
+
+            <!-- Mode 2: Online Multiplayer Protocol -->
+            <div class="mode-card">
+              <div class="mode-card-info">
+                <div class="mode-tag-row">
+                  <span class="mode-pill pill-cyan">ONLINE VERSUS</span>
+                  <span class="mode-meta">P2P WEBRTC DIRECT</span>
+                </div>
+                <div class="mode-desc">Direct WebRTC match across 2 phones or PC browsers. Zero server lag.</div>
+              </div>
+              <div class="mode-btn-row">
+                <button id="btn-menu-host" class="btn btn-primary">
+                  <span>⚡</span> Host Room
+                </button>
+                <button id="btn-menu-join" class="btn btn-secondary">
+                  <span>🔗</span> Join Room
+                </button>
+              </div>
+            </div>
+
+            <!-- Mode 3: Local 2-Player Duel -->
+            <div class="mode-card">
+              <div class="mode-card-info">
+                <div class="mode-tag-row">
+                  <span class="mode-pill pill-magenta">LOCAL DUEL</span>
+                  <span class="mode-meta">SAME DEVICE / SPLIT</span>
+                </div>
+                <div class="mode-desc">1 Device Split Duel: P1 [W][A][S][D] (Cyan) vs P2 [Arrows] (Magenta).</div>
+              </div>
+              <button id="btn-menu-local" class="btn btn-outline btn-full">
+                <span>⚔️</span> Start 2-Player Local Duel
+              </button>
+            </div>
+          </div>
+
+          <!-- Column 2: Puck Arsenal & Equipment Hangar -->
+          <div class="deck-column">
+            <div class="deck-header">
+              <span class="deck-icon">⚡</span>
+              <span class="deck-title">PUCK ARSENAL & HANGAR</span>
+              <span class="deck-sub-tag">CUSTOMIZE LOADOUT</span>
+            </div>
+
+            <div class="arsenal-card">
+              <!-- Live 3D Rotating Puck Hologram Box -->
+              <div class="puck-showcase-box">
+                <canvas id="puck-preview-canvas" width="150" height="150" class="puck-preview-disc"></canvas>
+                <div class="puck-showcase-meta">
+                  <div class="showcase-status">EQUIPPED KINETIC DISC</div>
+                  <div id="puck-preview-title" class="showcase-name">CYBER KINETIC</div>
+                  <div id="puck-preview-tag" class="showcase-tag">⚡ VOLTAGE CORE</div>
+                  <div id="puck-preview-desc" class="showcase-desc">Balanced Titanium Rim • High-Voltage Cyan Field</div>
+
+                  <!-- Dynamic Performance Telemetry Bars -->
+                  <div class="puck-telemetry-specs">
+                    <div class="telemetry-stat">
+                      <div class="stat-header"><span>VELOCITY</span><span id="stat-accel-val">88%</span></div>
+                      <div class="stat-bar-track"><div id="stat-accel-bar" class="stat-bar-fill cyan" style="width: 88%;"></div></div>
+                    </div>
+                    <div class="telemetry-stat">
+                      <div class="stat-header"><span>DEFLECTION</span><span id="stat-deflect-val">92%</span></div>
+                      <div class="stat-bar-track"><div id="stat-deflect-bar" class="stat-bar-fill yellow" style="width: 92%;"></div></div>
+                    </div>
+                    <div class="telemetry-stat">
+                      <div class="stat-header"><span>SPIN DYNAMICS</span><span id="stat-spin-val">85%</span></div>
+                      <div class="stat-bar-track"><div id="stat-spin-bar" class="stat-bar-fill magenta" style="width: 85%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Custom Puck Core & Glow Color Palette -->
+              <div class="puck-color-picker-wrap">
+                <div class="color-picker-header">
+                  <span class="color-picker-label">ENERGY CORE & GLOW COLOR:</span>
+                  <span id="active-color-name" class="active-color-name">⚡ ELECTRIC CYAN</span>
+                </div>
+                <div class="puck-color-swatches">
+                  <button class="color-swatch-btn active" data-color="#00f0ff" data-name="ELECTRIC CYAN" style="--swatch-color: #00f0ff;" title="Electric Cyan"></button>
+                  <button class="color-swatch-btn" data-color="#ff007f" data-name="NEON MAGENTA" style="--swatch-color: #ff007f;" title="Neon Magenta"></button>
+                  <button class="color-swatch-btn" data-color="#ffe600" data-name="SOLAR GOLD" style="--swatch-color: #ffe600;" title="Solar Gold"></button>
+                  <button class="color-swatch-btn" data-color="#10b981" data-name="QUANTUM MATRIX" style="--swatch-color: #10b981;" title="Quantum Matrix"></button>
+                  <button class="color-swatch-btn" data-color="#a855f7" data-name="COSMIC VIOLET" style="--swatch-color: #a855f7;" title="Cosmic Violet"></button>
+                  <button class="color-swatch-btn" data-color="#ff2244" data-name="HYPER CRIMSON" style="--swatch-color: #ff2244;" title="Hyper Crimson"></button>
+                  <button class="color-swatch-btn" data-color="#38bdf8" data-name="ARCTIC ICE" style="--swatch-color: #38bdf8;" title="Arctic Ice"></button>
+                  <button class="color-swatch-btn" data-color="#f97316" data-name="MOLTEN FLARE" style="--swatch-color: #f97316;" title="Molten Flare"></button>
+                  <label class="color-swatch-custom" title="Pick Any Custom Hex Color">
+                    <input type="color" id="custom-puck-color-input" value="#00f0ff" class="custom-color-input" />
+                    <span class="custom-color-icon">🎨</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 4 Selectable Puck Skins -->
+              <div class="puck-skin-grid">
+                <button class="puck-skin-btn active" data-skin="puckKinetic" title="Equip Cyber Kinetic">
+                  <div class="skin-thumb-wrap">
+                    <img src="/puck_kinetic.jpg" alt="Cyber Kinetic" class="skin-thumb" />
+                  </div>
+                  <div class="skin-text">
+                    <span class="skin-name">CYBER KINETIC</span>
+                    <span class="skin-sub" style="color: #00f0ff;">⚡ VOLTAGE</span>
+                  </div>
+                </button>
+
+                <button class="puck-skin-btn" data-skin="puckSolar" title="Equip Solar Flare">
+                  <div class="skin-thumb-wrap">
+                    <img src="/puck_solar.jpg" alt="Solar Flare" class="skin-thumb" />
+                  </div>
+                  <div class="skin-text">
+                    <span class="skin-name">SOLAR FLARE</span>
+                    <span class="skin-sub" style="color: #ff8800;">🔥 PLASMA</span>
+                  </div>
+                </button>
+
+                <button class="puck-skin-btn" data-skin="puckVoid" title="Equip Void Nebula">
+                  <div class="skin-thumb-wrap">
+                    <img src="/puck_void.jpg" alt="Void Nebula" class="skin-thumb" />
+                  </div>
+                  <div class="skin-text">
+                    <span class="skin-name">VOID NEBULA</span>
+                    <span class="skin-sub" style="color: #d946ef;">🌌 SINGULARITY</span>
+                  </div>
+                </button>
+
+                <button class="puck-skin-btn" data-skin="puckMatrix" title="Equip Matrix Sync">
+                  <div class="skin-thumb-wrap">
+                    <img src="/puck_matrix.jpg" alt="Matrix Sync" class="skin-thumb" />
+                  </div>
+                  <div class="skin-text">
+                    <span class="skin-name">MATRIX SYNC</span>
+                    <span class="skin-sub" style="color: #10b981;">🟢 QUANTUM</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Striker Mallet Loadout Preview -->
+              <div class="mallet-loadout-wrap">
+                <span class="mallet-label">HOVERCRAFT MALLET FLEET:</span>
+                <div class="mallet-preview-row">
+                  <div class="mallet-chip">
+                    <img src="/striker_cyan.jpg" alt="P1 Mallet" class="mallet-mini-thumb" />
+                    <div class="mallet-info">
+                      <span class="mallet-player">P1 STRIKER</span>
+                      <span class="mallet-color cyan">CYBER HOVER</span>
+                    </div>
+                  </div>
+                  <div class="mallet-chip">
+                    <img src="/striker_magenta.jpg" alt="P2 Mallet" class="mallet-mini-thumb" />
+                    <div class="mallet-info">
+                      <span class="mallet-player">P2 STRIKER</span>
+                      <span class="mallet-color magenta">NEON HOVER</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Control Deck & Input Preferences -->
+        <div class="title-bottom-deck">
+          <div class="input-selector-wrap">
+            <span class="input-selector-label">CONTROLLER:</span>
+            <div class="input-pills">
+              <button class="input-pill active" data-input="KEYBOARD">⌨️ Keyboard</button>
+              <button class="input-pill" data-input="MOUSE">🖱️ Mouse</button>
+              <button class="input-pill" data-input="TOUCH">📱 Touch</button>
+            </div>
+          </div>
+
+          <div class="controls-guide-strip">
+            <div class="ctrl-chip"><b>[W][A][S][D] / Mouse</b>: Steer Striker</div>
+            <div class="ctrl-chip"><b>[Space] / Left-Click</b>: Timed Spike & Lasers</div>
+            <div class="ctrl-chip pro-tip"><b>💡 PRO TIP:</b> Tap, click, or [Space] during countdown to Instant-Clash!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: Host Lobby -->
+      <div id="screen-host" class="screen-panel hidden">
+        <h2 class="game-title" style="font-size: 2rem;">Host Room</h2>
+        <p class="game-subtitle">Share this code or scan with 2nd phone</p>
+
+        <div class="menu-card" style="text-align: center;">
+          <div class="room-badge-wrap">
+            <span style="font-size: 0.85rem; color: var(--text-dim); letter-spacing: 2px;">ROOM CODE:</span>
+            <div id="host-code-display" class="room-code-display">----</div>
+          </div>
+
+          <canvas id="qr-canvas" class="qr-preview-canvas"></canvas>
+
+          <div style="display: flex; gap: 8px; flex-direction: column;">
+            <button id="btn-copy-link" class="btn btn-primary">
+              <span>📋</span> Copy Invite Link
+            </button>
+            <button id="btn-open-tab" class="btn btn-secondary">
+              <span>🖥️</span> Open 2nd Player (New Tab)
+            </button>
+          </div>
+          <div style="font-size: 0.95rem; color: var(--cyan); margin: 6px 0; letter-spacing: 1px;">
+            ⏳ Waiting for Player 2 to connect...
+          </div>
+          <button id="btn-cancel-host" class="btn btn-outline">Cancel</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: Join Room -->
+      <div id="screen-join" class="screen-panel hidden">
+        <h2 class="game-title" style="font-size: 2rem;">Join Match</h2>
+        <p class="game-subtitle">Enter 4-character room code</p>
+
+        <div class="menu-card">
+          <input
+            id="input-join-code"
+            type="text"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            placeholder="CODE"
+            class="neon-input"
+          />
+          <button id="btn-confirm-join" class="btn btn-secondary">
+            <span>🚀</span> Connect to Match
+          </button>
+          <button id="btn-cancel-join" class="btn btn-outline">Back</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: AI Difficulty Selection -->
+      <div id="screen-difficulty" class="screen-panel hidden">
+        <h2 class="game-title" style="font-size: 2rem;">Select Difficulty</h2>
+        <p class="game-subtitle">Test your reflexes against AI</p>
+
+        <div class="menu-card">
+          <button class="btn btn-outline btn-diff-select" data-diff="RECRUIT">
+            <span>🟢</span> Recruit (Casual)
+          </button>
+          <button class="btn btn-primary btn-diff-select" data-diff="VETERAN">
+            <span>🟡</span> Veteran (Tactical)
+          </button>
+          <button class="btn btn-secondary btn-diff-select" data-diff="APEX">
+            <span>🔴</span> Apex (God-Tier)
+          </button>
+          <button id="btn-cancel-diff" class="btn btn-outline">Back</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: Game Over -->
+      <div id="screen-gameover" class="screen-panel hidden">
+        <h2 id="gameover-title" class="game-title">VICTORY!</h2>
+        <p id="gameover-subtitle" class="game-subtitle">Match Concluded</p>
+
+        <div class="menu-card" style="text-align: center;">
+          <div style="font-size: 3rem; margin: 8px 0;" id="gameover-score">5 - 3</div>
+          <button id="btn-rematch" class="btn btn-primary">
+            <span>🔄</span> Play Again
+          </button>
+          <button id="btn-return-menu" class="btn btn-outline">
+            Main Menu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
